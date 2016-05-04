@@ -1,5 +1,7 @@
 <?php
 return array(
+    'TMPL_L_DELIM'    =>    '<{',
+    'TMPL_R_DELIM'    =>    '}>',
 	//'配置项'=>'配置值'
 	'DB_TYPE'   => 'mysql', // 数据库类型
 	'DB_HOST'   => 'localhost', // 服务器地址

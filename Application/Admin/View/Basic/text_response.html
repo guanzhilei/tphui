@@ -1,0 +1,173 @@
+<!DOCTYPE HTML>
+<html>
+<include file="Public:header" />
+<body>
+<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 基本功能 <span class="c-gray en">&gt;</span> 文字回复 <a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px;margin-right: 5px;" href="javascript:location.replace(location.href);" title="刷新" ><i class="Hui-iconfont">&#xe68f;</i></a></nav>
+<div class="page-container">
+    <div class="cl pd-5 bg-1 bk-gray mt-20"> <span class="l"><a href="javascript:;" onclick="datadel()" class="btn btn-danger radius"><i class="Hui-iconfont">&#xe6e2;</i> 批量删除</a> <a href="javascript:;" onclick="layer_show('添加基本文字回复','<{:U(\'Basic/text_response_add\')}>','600','450')" class="btn btn-primary radius"><i class="Hui-iconfont">&#xe600;</i> 添加用户</a></span> <span class="r">共有数据：<strong>88</strong> 条</span> </div>
+    <div class="mt-20">
+        <table class="table table-border table-bordered table-hover table-bg table-sort">
+            <thead>
+            <tr class="text-c">
+                <th width="25"><input type="checkbox" name="" value=""></th>
+                <th width="80">回复规则名称</th>
+                <th width="100">触发关键字</th>
+                <th width="40">回复内容</th>
+                <th width="40">状态</th>
+                <th width="100">操作</th>
+            </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+<include file="Public:footer" />
+<script type="text/javascript">
+    //列表
+    $(".table-sort").dataTable({
+        "bServerSide": true,
+        "bPaginate": true, //是否分页
+        "bAutoWidth":true,
+        "bInfo":true,
+        "searching":false,
+        "bProcessing": true, //datatable获取数据时候是否显示正在处理提示信息。
+        "iDisplayLength": 10, //每页显示10条记录
+        'bFilter': true, //是否使用内置的过滤功能
+        "bLengthChange":false,			//表格上方，每面显示XX条的信息
+        "bDestroy" : true,
+        "bSortCellsTop" : true,
+        "aLengthMenu": [[5, 10, 15, 20], ['5', '10', '15', '20']],
+        "sAjaxSource": '<{$domain}>weiketaskpub/tasklist',
+        "aaSorting": [[0, "desc"]],
+        "aoColumnDefs": [
+            {"orderable":false,"aTargets":[1,2]}// 不参与排序的列
+        ],
+        "fnServerParams": function (aoData){  //查询条件
+            aoData.push(
+                    { "name": "rwbt", "value": $("#rwbt").val()}
+                    ,{ "name": "xsje", "value": $("#xsje").val()}
+                    ,{ "name": "jzbdate", "value": $("#jzmin").val()}
+                    ,{ "name": "jzedate", "value": $("#jzmax").val()}
+                    ,{ "name": "xsjes", "value": $("#xsjes").val()}
+                    ,{ "name": "wktype" , "value" :$("#wktype").val()}
+            );
+        },
+        "aoColumns": [
+            {"mData": "wkrwdt_id", "bSortable": false, "mRender": function(data,type,full) {
+                return "<input type='checkbox' value='"+data+"' name='check_id'>";
+            }},
+            {"mData": "wkrwdt_name"},
+            {"mData": "wkrwdt_name"},
+            {"mData": "wt_name"},
+            {"mData": "wkrwdt_mon"},
+            {"mData": "wkrwdt_id", "bSortable": false, "mRender": function(data,type,r) {
+                var state = r.wkrwdt_sq;
+                return 	'<a style="text-decoration:none" class="ml-5" onClick="showtextiframe(\'任务描述\',\'<{$domain}>weiketaskpub/showiframeinfo/id/'+data+'\')" href="javascript:;" title="查看任务描述"><i class="Hui-iconfont">&#xe695;</i></a>'+
+                        '<a style="text-decoration:none" class="ml-5"  data-title="编辑任务" _href="<{$domain}>weiketaskpub/taskadd/id/'+data+'" onclick="Hui_admin_tab(this)"><i class="Hui-iconfont" title="编辑">&#xe6df;</i></a> ' +
+                        '<a style="text-decoration:none" class="ml-5" onClick="record_del(this,'+data+','+state+')" href="javascript:;" title="删除"><i class="Hui-iconfont">&#xe6e2;</i></a> ' +
+                        '<a style="text-decoration:none" class="ml-5" onClick="tougao_show(\'查看投稿\',\'<{$domain}>weiketaskpub/showtoug/id/'+data+'\',700,400,'+state+');" href="javascript:;" title="查看投稿"><i class="Hui-iconfont">&#xe6a7;</i></a> ' /*+
+                 '<a style="text-decoration:none" class="ml-5" onClick="order_tk(this,'+data+')" href="javascript:;" title="退款"><i class="Hui-iconfont">&#xe6a6;</i></a>'*/;
+            }}
+        ],
+        "oLanguage": {
+            "sLengthMenu": "每页显示 _MENU_ 项记录",
+            "sZeroRecords": "没有符合的数据...",
+            "sInfo": "当前数据从第 _START_ 到第 _END_ 条项数据；总共有 _TOTAL_ 条记录",
+            "sInfoEmpty": "显示 0 至 0 共 0 项",
+            "sInfoFiltered": "(_MAX_)"
+        },
+        "createdRow": function( row, data, dataIndex ) {
+            $(row).children('td').eq(0).attr('style', 'text-align: center;');
+            $(row).children('td').eq(3).attr('style', 'text-align: right;');
+            $(row).children('td').eq(4).attr('style', 'text-align: right;');
+            $(row).children('td').eq(7).attr('style', 'text-align: center;');
+            $(row).children('td').eq(8).attr('style', 'text-align: center;');
+        }
+
+    });
+
+    //条件查询
+    $("button[name='btnType']").bind("click",function(){
+        $(".table-sort").dataTable().fnDraw();
+    })
+
+    function tougao_show(title,url,w,h,state){
+        if(state==7){
+            layer.msg('请向云平台托管追加赏金!',{icon:5,time:1000});
+            return false;
+        }
+        if(state==8){
+            layer.msg('待云平台审核追加打款凭证!',{icon:5,time:1000});
+            return false;
+        }
+        layer_show(title,url,w,h);
+    }
+    function record_del(obj,id,state){
+        if(state!=1){
+            layer.msg('不可删除!',{icon:5,time:1000});
+            return false;
+        }
+        layer.confirm('确认要删除吗？',function(index){
+            $.get("<{$domain}>weiketaskpub/taskdel", { id: id},
+                    function(data){
+                        if(data)
+                            layer.msg('删除成功!',{icon:1,time:1000});
+                        else
+                            layer.msg('删除失败!',{icon:2,time:1000});
+                        setTimeout(function(){
+                            location.reload();
+                        },1000);
+                    }
+            );
+
+        });
+    }
+    function order_tk(obj,id){
+        layer.confirm('确认要发起退款吗？',function(index){
+            $.get("<{$domain}>weiketaskp1ub/taskdel", { id: id},
+                    function(data){
+                        if(data)
+                            layer.msg('退款申请提交!',{icon:1,time:1000});
+                        else
+                            layer.msg('退款申请提交失败!',{icon:2,time:1000});
+                        setTimeout(function(){
+                            location.reload();
+                        },1000);
+                    }
+            );
+
+        });
+    }
+    /*批量删除  已经搞定 但单个删除有问题啊 意思就是说页面没有刷新， 懂？ */
+    function datadel(){
+        layer.confirm("确定要删除吗？",function(index){
+            //这里储存需要被删除的所有的ID
+
+            var id="";
+            var str_id=$("input[name='check_id']");
+
+            for(var i =0;i<str_id.length;i++){
+                if(str_id[i].checked){
+                    id+=str_id[i].value+",";
+                }
+            }
+            if(id==""){
+                layer.msg("没有数据",{icon:5,time:1000});
+                return false;
+            }
+
+            $.get("<{$domain}>weiketaskpub/taskdel",{id:id},
+                    function(data){
+                        if(data)
+                            layer.msg('删除成功!',{icon:1,time:1000});
+                        else
+                            layer.msg('删除失败!',{icon:2,time:1000});
+                        setTimeout(function(){
+                            location.reload();
+                        },1000);
+                    }
+            );
+        });
+    }
+</script>
+</body>
+</html>
